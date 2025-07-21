@@ -35,7 +35,7 @@ def predict():
     description = ""
 
     if confidence > CONFIDENCE_THRESHOLD:
-        description = generate_description(final_class_name)
+        description = generate_description(final_class_name, img_path_on_server)
     else:
         final_class_name = "Không xác định"
         description = "Sinh vật này không nằm trong chương trình Sinh học Trung học Phổ thông, nên hệ thống không cung cấp thông tin chi tiết."
