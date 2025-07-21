@@ -5,12 +5,22 @@ from tensorflow.keras.models import load_model
 import os
 
 MODEL_PATH = "model/recogbio_classification_modnet50.keras"
-model = None
-if os.path.exists(MODEL_PATH):
-    model = load_model(MODEL_PATH, compile=False)
-    print("✅ Model loaded")
+MODEL_URL = os.getenv("MODEL_URL")
+
+# Tự động tải nếu model chưa tồn tại
+if not os.path.exists(MODEL_PATH):
+    print(f"⬇️ Downloading model from {MODEL_URL}")
+    os.makedirs("model", exist_ok=True)
+    response = requests.get(MODEL_URL)
+    with open(MODEL_PATH, "wb") as f:
+        f.write(response.content)
+    print("✅ Model downloaded.")
 else:
-    print("⚠️ Model not found, skipping load")
+    print("✅ Model already exists.")
+
+# Sau đó load model như bình thường
+from tensorflow.keras.models import load_model
+model = load_model(MODEL_PATH, compile=False)
 
 CLASS_NAMES = [
     'ape', 'bat', 'bee', 'bird', 'buffalo', 'butterfly', 'carp', 'cat',
