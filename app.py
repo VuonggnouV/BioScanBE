@@ -72,6 +72,9 @@ def serve_output_file(filename):
         return send_from_directory('static/outputs', filename, as_attachment=False, mimetype='text/plain; charset=utf-8')
     except FileNotFoundError:
         return "File not found", 404
+@app.route("/")
+def index():
+    return "BioScan Backend is running!"
 
 #if __name__ == '__main__':
 #    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
