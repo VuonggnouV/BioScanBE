@@ -4,7 +4,7 @@ from tensorflow.keras.applications.resnet50 import preprocess_input
 from tensorflow.keras.models import load_model
 
 # Sửa lỗi chính tả trong tên tệp model
-MODEL_PATH = "C:\\backend\\model\\recogbio_classification_modnet50.keras"
+MODEL_PATH = "model/recogbio_classification_modnet50.keras"
 
 CLASS_NAMES = [
     'ape', 'bat', 'bee', 'bird', 'buffalo', 'butterfly', 'carp', 'cat',
