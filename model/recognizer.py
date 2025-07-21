@@ -3,7 +3,7 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import preprocess_input
 from tensorflow.keras.models import load_model
 import os
-
+import requests
 MODEL_PATH = "model/recogbio_classification_modnet50.keras"
 MODEL_URL = os.getenv("MODEL_URL")
 
