@@ -14,6 +14,7 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 CONFIDENCE_THRESHOLD = 0.7
+BASE_URL = "https://bioscanbe-production.up.railway.app"
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -28,6 +29,10 @@ def predict():
     img_path_on_server = f"static/uploads/{scan_id}.jpg"
     txt_path_on_server = f"static/outputs/{scan_id}.txt"
     image.save(img_path_on_server)
+
+    image_url = f"{RAILWAY_BASE_URL}/static/uploads/{scan_id}.jpg"
+    text_url = f"{RAILWAY_BASE_URL}/static/outputs/{scan_id}.txt"
+
 
     # Xử lý ảnh và gọi Gemini như cũ
     predicted_class, confidence = recognize_image(img_path_on_server)
@@ -49,8 +54,9 @@ def predict():
     # --- SỬA LỖI QUAN TRỌNG ---
     # Chỉ cập nhật các trường do backend tạo ra.
     # KHÔNG cập nhật lại trường 'imagePaths'.
-    history_ref.update({
-        "infoFileUri": txt_path_on_server,
+history_ref.update({
+        "infoFileUri": text_url,
+        "imagePaths": [image_url],  
         "class": final_class_name,
         "processingStatus": "completed"
     })
