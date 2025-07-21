@@ -3,8 +3,13 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import preprocess_input
 from tensorflow.keras.models import load_model
 
-# Sửa lỗi chính tả trong tên tệp model
 MODEL_PATH = "model/recogbio_classification_modnet50.keras"
+model = None
+if os.path.exists(MODEL_PATH):
+    model = load_model(MODEL_PATH, compile=False)
+    print("✅ Model loaded")
+else:
+    print("⚠️ Model not found, skipping load")
 
 CLASS_NAMES = [
     'ape', 'bat', 'bee', 'bird', 'buffalo', 'butterfly', 'carp', 'cat',
