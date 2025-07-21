@@ -1,5 +1,6 @@
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+print("CUDA disabled manually")
 
 import numpy as np
 from tensorflow.keras.preprocessing import image
