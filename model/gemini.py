@@ -6,7 +6,7 @@ genai.configure(api_key="GEMINI_API_KEY")
 # Khởi tạo model Gemini
 gemini_model = genai.GenerativeModel("gemini-1.5-flash")
 
-def generate_description(label):
+def generate_description(label, image_path):
     prompt = f"""Đối tượng được nhận diện trong ảnh là: {label}.
 
 Hãy cung cấp một đoạn mô tả hoàn chỉnh, rõ ràng và đầy đủ về đối tượng {label}, bao gồm:
