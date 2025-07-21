@@ -1,7 +1,7 @@
 import google.generativeai as genai
-
+import PIL.Image
 # Cấu hình API key của bạn
-genai.configure(api_key="AIzaSyAMcJMdNsm9yBw2b7gaZ0b2Xz9qj1sqtAg")
+genai.configure(api_key="GEMINI_API_KEY")
 
 # Khởi tạo model Gemini
 gemini_model = genai.GenerativeModel("gemini-1.5-flash")
@@ -25,7 +25,8 @@ Trình bày dưới dạng văn bản hoàn chỉnh, hướng đến người d�
     """
 
     try:
-        response = gemini_model.generate_content(prompt)
+        img = PIL.Image.open(image_path)
+        response = gemini_model.generate_content([prompt, img])
         return response.text
     except Exception as e:
         print(f"Lỗi khi gọi API Gemini: {e}")
