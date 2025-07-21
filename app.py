@@ -30,8 +30,8 @@ def predict():
     txt_path_on_server = f"static/outputs/{scan_id}.txt"
     image.save(img_path_on_server)
 
-    image_url = f"{RAILWAY_BASE_URL}/static/uploads/{scan_id}.jpg"
-    text_url = f"{RAILWAY_BASE_URL}/static/outputs/{scan_id}.txt"
+    image_url = f"{BASE_URL}/static/uploads/{scan_id}.jpg"
+    text_url = f"{BASE_URL}/static/outputs/{scan_id}.txt"
 
 
     # Xử lý ảnh và gọi Gemini như cũ
