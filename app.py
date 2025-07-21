@@ -4,9 +4,12 @@ from model.recognizer import recognize_image
 from model.gemini import generate_description
 import firebase_admin
 from firebase_admin import credentials, firestore
+import json
 
 app = Flask(__name__)
-cred = credentials.Certificate("serviceAccountKey.json")
+cred_json = os.getenv("FIREBASE_KEY_JSON")
+cred_dict = json.loads(cred_json)
+cred = credentials.Certificate(cred_dict)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
