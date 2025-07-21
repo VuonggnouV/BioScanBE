@@ -54,7 +54,7 @@ def predict():
     # --- SỬA LỖI QUAN TRỌNG ---
     # Chỉ cập nhật các trường do backend tạo ra.
     # KHÔNG cập nhật lại trường 'imagePaths'.
-history_ref.update({
+    history_ref.update({
         "infoFileUri": text_url,
         "imagePaths": [image_url],  
         "class": final_class_name,
