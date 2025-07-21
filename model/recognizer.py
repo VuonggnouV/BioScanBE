@@ -20,9 +20,6 @@ CLASS_NAMES = [
     'spider', 'starfish', 'tiger', 'turtle', 'zebra'
 ]
 
-# Tải model một lần khi ứng dụng khởi động
-model = load_model(MODEL_PATH, compile=False)
-
 def recognize_image(img_path):
     """
     Nhận diện ảnh và trả về tên lớp cùng với điểm tin cậy.
