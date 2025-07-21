@@ -2,6 +2,7 @@ import numpy as np
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import preprocess_input
 from tensorflow.keras.models import load_model
+import os
 
 MODEL_PATH = "model/recogbio_classification_modnet50.keras"
 model = None
