@@ -17,6 +17,7 @@ db = firestore.client()
 
 # --- Biến cấu hình ---
 CONFIDENCE_THRESHOLD = 0.7
+BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")  # fallback nếu chạy local
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -31,6 +32,7 @@ def predict():
     img_path_on_server = f"static/uploads/{scan_id}.jpg"
     txt_path_on_server = f"static/outputs/{scan_id}.txt"
     image.save(img_path_on_server)
+    
 
     # Xử lý ảnh và gọi Gemini như cũ
     predicted_class, confidence = recognize_image(img_path_on_server)
@@ -52,9 +54,12 @@ def predict():
     # --- SỬA LỖI QUAN TRỌNG ---
     # Chỉ cập nhật các trường do backend tạo ra.
     # KHÔNG cập nhật lại trường 'imagePaths'.
+    img_url = f"{BASE_URL}/{img_path_on_server}"
+    txt_url = f"{BASE_URL}/{txt_path_on_server}"
+
     history_ref.update({
-        "infoFileUri": txt_path_on_server,
-        "imagePaths": [img_path_on_server],  
+        "infoFileUri": txt_url,
+        "imagePaths": [img_url],  
         "class": final_class_name,
         "processingStatus": "completed"
     })
