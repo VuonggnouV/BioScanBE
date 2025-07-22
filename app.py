@@ -17,7 +17,7 @@ db = firestore.client()
 
 # --- Biến cấu hình ---
 CONFIDENCE_THRESHOLD = 0.7
-BASE_URL = os.getenv("BASE_URL", "http://localhost:5000")  # fallback nếu chạy local
+BASE_URL = os.getenv("BASE_URL")  # fallback nếu chạy local
 
 @app.route("/predict", methods=["POST"])
 def predict():
