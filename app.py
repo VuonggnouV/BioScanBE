@@ -17,7 +17,8 @@ db = firestore.client()
 
 # --- Biến cấu hình ---
 CONFIDENCE_THRESHOLD = 0.7
-BASE_URL = os.getenv("BASE_URL")  # fallback nếu chạy local
+BASE_URL = os.getenv("BASE_URL") 
+print(f"[DEBUG] BASE_URL = {BASE_URL}")  # <-- Thêm dòng này để in ra URL
 
 @app.route("/predict", methods=["POST"])
 def predict():
