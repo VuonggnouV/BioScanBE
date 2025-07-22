@@ -19,6 +19,7 @@ db = firestore.client()
 CONFIDENCE_THRESHOLD = 0.7
 BASE_URL = os.getenv("BASE_URL") 
 print(f"[DEBUG] BASE_URL = {BASE_URL}")  # <-- Thêm dòng này để in ra URL
+print(f"[DEBUG] os.environ: {dict(os.environ)}")
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -57,6 +58,8 @@ def predict():
     # KHÔNG cập nhật lại trường 'imagePaths'.
     img_url = f"{BASE_URL}/{img_path_on_server}"
     txt_url = f"{BASE_URL}/{txt_path_on_server}"
+    
+    print(f"[DEBUG] os.environ: {dict(os.environ)}")
 
     history_ref.update({
         "infoFileUri": txt_url,
