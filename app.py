@@ -17,7 +17,8 @@ db = firestore.client()
 
 # --- Biến cấu hình ---
 CONFIDENCE_THRESHOLD = 0.7
-BASE_URL = os.getenv("BASE_URL") 
+#BASE_URL = os.getenv("BASE_URL") 
+BASE_URL="https://bioscanbe-production.up.railway.app"
 print(f"[DEBUG] BASE_URL = {BASE_URL}")  # <-- Thêm dòng này để in ra URL
 print(f"[DEBUG] os.environ: {dict(os.environ)}")
 
