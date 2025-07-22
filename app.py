@@ -54,7 +54,7 @@ def predict():
     # KHÔNG cập nhật lại trường 'imagePaths'.
     history_ref.update({
         "infoFileUri": txt_path_on_server,
-        "imagePaths": img_path_on_server,  
+        "imagePaths": [img_path_on_server],  
         "class": final_class_name,
         "processingStatus": "completed"
     })
