@@ -40,15 +40,21 @@ def get_sb():
 
 def sb_upload(local_path: str, remote_path: str, content_type: str | None = None) -> str:
     from mimetypes import guess_type
-
     ct = content_type or (guess_type(remote_path)[0] or "application/octet-stream")
-    file_options = {"contentType": ct, "cacheControl": "3600", "upsert": True}
 
     with open(local_path, "rb") as f:
-        # truyền vào tham số file_options (rõ ràng) thay vì đối số thứ 3 ẩn
-        get_sb().storage.from_(SB_BUCKET).upload(remote_path, f, file_options=file_options)
+        try:
+            # supabase >= 2.4
+            from supabase.storage.types import FileOptions
+            opts = FileOptions(cache_control="3600", upsert=True, content_type=ct)
+            get_sb().storage.from_(SB_BUCKET).upload(remote_path, f, file_options=opts)
+        except Exception:
+            # fallback cho version cũ: truyền headers dạng string
+            headers = {"content-type": ct, "cache-control": "3600", "x-upsert": "true"}
+            get_sb().storage.from_(SB_BUCKET).upload(remote_path, f, file_options=headers)
 
     return get_sb().storage.from_(SB_BUCKET).get_public_url(remote_path)
+
 
 
 # ---------------- App config ----------------
