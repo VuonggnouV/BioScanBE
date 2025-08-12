@@ -1,78 +1,113 @@
+# app.py
 from flask import Flask, request, jsonify, send_from_directory
-import os
+import os, json, mimetypes
+
+# Model inference & LLM
 from model.recognizer import recognize_image
-from model.gemini import generate_description
+from model.gemini import generate_description  # hàm này CHỈ gửi prompt cho Gemini
+
+# Firebase
 import firebase_admin
 from firebase_admin import credentials, firestore
-import json
+
+# Supabase Storage (dùng để lưu ảnh/txt bền vững)
+from supabase import create_client
 
 app = Flask(__name__)
 
-# --- Khởi tạo Firebase ---
+# ---------------- Firebase ----------------
+# FIREBASE_KEY_JSON: biến môi trường chứa toàn bộ JSON service account
 cred_json = os.getenv("FIREBASE_KEY_JSON")
 cred_dict = json.loads(cred_json)
-cred = credentials.Certificate(cred_dict)
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(credentials.Certificate(cred_dict))
 db = firestore.client()
 
-# --- Biến cấu hình ---
+# ---------------- Supabase Storage ----------------
+# Cần set trên Railway:
+#   SUPABASE_URL = https://<project-ref>.supabase.co
+#   SUPABASE_SERVICE_ROLE_KEY = <service_role key>
+#   SB_BUCKET = bioscan  (đã tạo trong Supabase Storage và bật Public)
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SB_BUCKET = os.getenv("SB_BUCKET", "bioscan")
+sb = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+def sb_upload(local_path: str, remote_path: str) -> str:
+    """
+    Upload file lên Supabase Storage (bucket public) và trả public URL.
+    upsert=True để ghi đè khi trùng scan_id.
+    """
+    ctype = mimetypes.guess_type(local_path)[0] or "application/octet-stream"
+    with open(local_path, "rb") as f:
+        sb.storage.from_(SB_BUCKET).upload(
+            remote_path,
+            f,
+            {"content-type": ctype, "upsert": True}
+        )
+    return sb.storage.from_(SB_BUCKET).get_public_url(remote_path)
+
+# ---------------- App config ----------------
 CONFIDENCE_THRESHOLD = 0.7
-#BASE_URL = os.getenv("BASE_URL") 
-BASE_URL="https://bioscanbe-production.up.railway.app"
-print(f"[DEBUG] BASE_URL = {BASE_URL}")  # <-- Thêm dòng này để in ra URL
-print(f"[DEBUG] os.environ: {dict(os.environ)}")
+BASE_URL = os.getenv("BASE_URL", "https://bioscanbe-production.up.railway.app")
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    if 'image' not in request.files or 'user_id' not in request.form or 'role' not in request.form or 'scan_id' not in request.form:
+    # Validate payload
+    required = ('image', 'user_id', 'role', 'scan_id')
+    if not all(k in (request.files if k == 'image' else request.form) for k in required):
         return jsonify({"error": "Missing required fields"}), 400
-        
-    image = request.files['image']
+
+    image_file = request.files['image']
     user_id = request.form['user_id']
     role = request.form['role']
     scan_id = request.form['scan_id']
 
-    img_path_on_server = f"static/uploads/{scan_id}.jpg"
-    txt_path_on_server = f"static/outputs/{scan_id}.txt"
-    image.save(img_path_on_server)
-    
+    # Lưu tạm local để xử lý (vẫn như cũ)
+    os.makedirs("static/uploads", exist_ok=True)
+    os.makedirs("static/outputs", exist_ok=True)
+    img_path_local = f"static/uploads/{scan_id}.jpg"
+    txt_path_local = f"static/outputs/{scan_id}.txt"
+    image_file.save(img_path_local)
 
-    # Xử lý ảnh và gọi Gemini như cũ
-    predicted_class, confidence = recognize_image(img_path_on_server)
+    # Nhận diện
+    predicted_class, confidence = recognize_image(img_path_local)
     final_class_name = predicted_class
-    description = ""
-
     if confidence > CONFIDENCE_THRESHOLD:
-        description = generate_description(final_class_name, img_path_on_server)
+        # generate_description hiện CHỈ gửi prompt (không gửi ảnh)
+        description = generate_description(final_class_name, img_path_local)
     else:
         final_class_name = "Không xác định"
-        description = "Sinh vật này không nằm trong chương trình Sinh học Trung học Phổ thông, nên hệ thống không cung cấp thông tin chi tiết."
+        description = (
+            "Sinh vật này không nằm trong chương trình Sinh học Trung học Phổ thông, "
+            "nên hệ thống không cung cấp thông tin chi tiết."
+        )
 
-    with open(txt_path_on_server, "w", encoding="utf-8") as f:
+    # Ghi mô tả ra file txt (như cũ)
+    with open(txt_path_local, "w", encoding="utf-8") as f:
         f.write(description)
 
-    collection_name = "archived_guests" if role == "guest" else "users"
-    history_ref = db.collection(collection_name).document(user_id).collection("scanHistory").document(scan_id)
-    
-    # --- SỬA LỖI QUAN TRỌNG ---
-    # Chỉ cập nhật các trường do backend tạo ra.
-    # KHÔNG cập nhật lại trường 'imagePaths'.
-    img_url = f"{BASE_URL}/{img_path_on_server}"
-    txt_url = f"{BASE_URL}/{txt_path_on_server}"
-    
-    print(f"[DEBUG] os.environ: {dict(os.environ)}")
+    # Upload ảnh & txt lên Supabase Storage -> nhận public URL (bền, mở được trên web)
+    img_url = sb_upload(img_path_local, f"uploads/{scan_id}.jpg")
+    txt_url = sb_upload(txt_path_local, f"outputs/{scan_id}.txt")
 
+    # Cập nhật Firestore history
+    collection_name = "archived_guests" if role == "guest" else "users"
+    history_ref = (
+        db.collection(collection_name)
+          .document(user_id)
+          .collection("scanHistory")
+          .document(scan_id)
+    )
     history_ref.update({
         "infoFileUri": txt_url,
-        "imagePaths": [img_url],  
+        "imagePaths": [img_url],
         "class": final_class_name,
         "processingStatus": "completed"
     })
-    # --- KẾT THÚC SỬA LỖI ---
-    
+
     return jsonify({"status": "success", "message": f"Processed scan_id {scan_id}"})
 
-# Các API phục vụ file không thay đổi
+# --------- Các route cũ (không còn bắt buộc nhưng giữ cho tiện debug) ---------
 @app.route('/static/uploads/<filename>')
 def serve_uploaded_image(filename):
     try:
@@ -86,7 +121,6 @@ def serve_output_file(filename):
         return send_from_directory('static/outputs', filename, as_attachment=False, mimetype='text/plain; charset=utf-8')
     except FileNotFoundError:
         return "File not found", 404
-
 
 @app.route("/")
 def index():
