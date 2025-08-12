@@ -27,18 +27,17 @@ from tensorflow.keras.models import load_model
 model = load_model(MODEL_PATH, compile=False)
 
 CLASS_NAMES = [
-    'ape', 'bat', 'bee', 'bird', 'buffalo', 'butterfly', 'carp', 'cat',
-    'chicken', 'chipmunk', 'cow', 'dog', 'dove', 'duck', 'eagle',
-    'elephant', 'fish', 'frog', 'horse', 'jelly_fish', 'lion', 'lobster',
-    'mouse', 'panther', 'peacock', 'pig', 'rabbit', 'seal', 'snake',
-    'spider', 'starfish', 'tiger', 'turtle', 'zebra'
-]
+    'ape', 'beans', 'bee', 'bird', 'buffalo', 'butterfly', 'cabbage', 'cauliflower', 'cat',
+    'chicken', 'chipmunk', 'coffee', 'cow', 'cucumber', 'deer', 'dog', 'dragon_fruits', 'elephant',
+    'fish', 'fox', 'ginger', 'goat', 'horse', 'jackfruit', 'jelly_fish', 'lion', 'litchi', 'longan',
+    'lotus', 'maize', 'mouse', 'orchid', 'panther', 'papaya', 'peacock', 'pig', 'potato', 'rabbit',
+    'rice_plant', 'seal', 'snake', 'spider', 'tiger', 'tomato', 'turtle', 'zebra']
 
 def recognize_image(img_path):
     """
     Nhận diện ảnh và trả về tên lớp cùng với điểm tin cậy.
     """
-    img = image.load_img(img_path, target_size=(256, 256))
+    img = image.load_img(img_path, target_size=(224, 224))
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
