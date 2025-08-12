@@ -8,7 +8,7 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 # Khởi tạo model Gemini
 gemini_model = genai.GenerativeModel("gemini-1.5-flash")
 
-def generate_description(label, image_path):
+def generate_description(label):
     prompt = f"""Đối tượng được nhận diện trong ảnh là: {label}.
 
 Hãy cung cấp một đoạn mô tả hoàn chỉnh, rõ ràng và đầy đủ về đối tượng {label}, bao gồm:
@@ -27,8 +27,8 @@ Trình bày dưới dạng văn bản hoàn chỉnh, hướng đến người d�
     """
 
     try:
-        img = PIL.Image.open(image_path)
-        response = gemini_model.generate_content([prompt, img])
+        #img = PIL.Image.open(image_path)
+        response = gemini_model.generate_content([prompt])
         return response.text
     except Exception as e:
         print(f"Lỗi khi gọi API Gemini: {e}")
