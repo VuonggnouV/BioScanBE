@@ -38,11 +38,10 @@ def get_sb():
         _SB = create_client(url, key)
     return _SB
 
-def sb_upload(local_path: str, remote_path: str) -> str:
-    """Upload file lên Supabase Storage (bucket public) và trả public URL."""
+def sb_upload(local_path: str, remote_path: str, content_type: str | None = None) -> str:
     with open(local_path, "rb") as f:
-        # KHÔNG truyền options/headers để tránh lỗi bool header
-        get_sb().storage.from_(SB_BUCKET).upload(remote_path, f)
+        opts = {"content-type": content_type} if content_type else None
+        get_sb().storage.from_(SB_BUCKET).upload(remote_path, f, opts)
     return get_sb().storage.from_(SB_BUCKET).get_public_url(remote_path)
 
 # ---------------- App config ----------------
@@ -86,8 +85,8 @@ def predict():
         f.write(description)
 
     # Upload ảnh & txt lên Supabase Storage -> nhận public URL bền
-    img_url = sb_upload(img_path_local, f"uploads/{scan_id}.jpg")
-    txt_url = sb_upload(txt_path_local, f"outputs/{scan_id}.txt")
+    img_url = sb_upload(img_path_local, f"uploads/{scan_id}.jpg", "image/jpeg")
+    txt_url = sb_upload(txt_path_local, f"outputs/{scan_id}.txt", "text/plain; charset=utf-8")
 
     # Cập nhật Firestore history (giữ nguyên schema)
     collection_name = "archived_guests" if role == "guest" else "users"
