@@ -38,22 +38,13 @@ def get_sb():
         _SB = create_client(url, key)
     return _SB
 
-def sb_upload(local_path: str, remote_path: str, content_type: str | None = None) -> str:
-    from mimetypes import guess_type
-    ct = content_type or (guess_type(remote_path)[0] or "application/octet-stream")
-
+def sb_upload(local_path: str, remote_path: str) -> str:
+    """Upload file lên Supabase Storage (bucket public) và trả public URL."""
     with open(local_path, "rb") as f:
-        try:
-            # supabase >= 2.4
-            from supabase.storage.types import FileOptions
-            opts = FileOptions(cache_control="3600", upsert=True, content_type=ct)
-            get_sb().storage.from_(SB_BUCKET).upload(remote_path, f, file_options=opts)
-        except Exception:
-            # fallback cho version cũ: truyền headers dạng string
-            headers = {"content-type": ct, "cache-control": "3600", "x-upsert": "true"}
-            get_sb().storage.from_(SB_BUCKET).upload(remote_path, f, file_options=headers)
-
+        # KHÔNG truyền options/headers để tránh lỗi bool header
+        get_sb().storage.from_(SB_BUCKET).upload(remote_path, f)
     return get_sb().storage.from_(SB_BUCKET).get_public_url(remote_path)
+
 
 
 
@@ -98,8 +89,8 @@ def predict():
         f.write(description)
 
     # Upload ảnh & txt lên Supabase Storage -> nhận public URL bền
-    img_url = sb_upload(img_path_local, f"uploads/{scan_id}.jpg", "image/jpeg")
-    txt_url = sb_upload(txt_path_local, f"outputs/{scan_id}.txt", "text/plain; charset=utf-8")
+    img_url = sb_upload(img_path_local, f"uploads/{scan_id}.jpg")
+    txt_url = sb_upload(txt_path_local, f"outputs/{scan_id}.txt")
 
     # Cập nhật Firestore history (giữ nguyên schema)
     collection_name = "archived_guests" if role == "guest" else "users"
