@@ -23,10 +23,6 @@ firebase_admin.initialize_app(credentials.Certificate(cred_dict))
 db = firestore.client()
 
 # ---------------- Supabase Storage ----------------
-# Cần set trên Railway:
-#   SUPABASE_URL = https://<project-ref>.supabase.co
-#   SUPABASE_SERVICE_ROLE_KEY = <service_role key>
-#   SB_BUCKET = bioscan  (đã tạo trong Supabase Storage và bật Public)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 SB_BUCKET = os.getenv("SB_BUCKET", "bioscan")
@@ -48,7 +44,7 @@ def sb_upload(local_path: str, remote_path: str) -> str:
 
 # ---------------- App config ----------------
 CONFIDENCE_THRESHOLD = 0.7
-BASE_URL = os.getenv("BASE_URL", "https://bioscanbe-production.up.railway.app")
+BASE_URL="https://bioscanbe-production.up.railway.app"
 
 @app.route("/predict", methods=["POST"])
 def predict():
