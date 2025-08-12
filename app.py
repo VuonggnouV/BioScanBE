@@ -73,6 +73,7 @@ def predict():
 
     # Nhận diện
     predicted_class, confidence = recognize_image(img_path_local)
+    print(f"[PREDICT] class={predicted_class}, confidence={confidence:.4f}", flush=True)
     final_class_name = predicted_class
     if confidence > CONFIDENCE_THRESHOLD:
         # generate_description hiện CHỈ gửi prompt (không gửi ảnh)
