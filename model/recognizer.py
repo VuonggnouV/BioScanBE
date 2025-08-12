@@ -27,11 +27,14 @@ from tensorflow.keras.models import load_model
 model = load_model(MODEL_PATH, compile=False)
 
 CLASS_NAMES = [
-    'ape', 'beans', 'bee', 'bird', 'buffalo', 'butterfly', 'cabbage', 'cauliflower', 'cat',
-    'chicken', 'chipmunk', 'coffee', 'cow', 'cucumber', 'deer', 'dog', 'dragon_fruits', 'elephant',
-    'fish', 'fox', 'ginger', 'goat', 'horse', 'jackfruit', 'jelly_fish', 'lion', 'litchi', 'longan',
-    'lotus', 'maize', 'mouse', 'orchid', 'panther', 'papaya', 'peacock', 'pig', 'potato', 'rabbit',
-    'rice_plant', 'seal', 'snake', 'spider', 'tiger', 'tomato', 'turtle', 'zebra']
+    'ape', 'beans', 'bee', 'bird', 'buffalo', 'butterfly', 'cabbage', 'cat',
+    'cauliflower', 'chicken', 'chipmunk', 'coffee', 'cow', 'cucumber', 'deer',
+    'dog', 'dragon_fruits', 'elephant', 'fish', 'fox', 'ginger', 'goat',
+    'horse', 'jackfruit', 'jelly_fish', 'lion', 'litchi', 'longan', 'lotus',
+    'maize', 'mouse', 'orchid', 'panther', 'papaya', 'peacock', 'pig',
+    'potato', 'rabbit', 'rice_plant', 'seal', 'snake', 'spider', 'tiger',
+    'tomato', 'turtle', 'zebra'
+]
 
 def recognize_image(img_path):
     """
