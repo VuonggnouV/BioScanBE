@@ -10,13 +10,11 @@ from model.gemini import generate_description  # hàm này CHỈ gửi prompt ch
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# Supabase Storage (dùng để lưu ảnh/txt bền vững)
+# Supabase Storage (lưu ảnh/txt bền vững)
 from supabase import create_client
 
 app = Flask(__name__)
-print("[DEBUG] SB_URL?", bool(os.getenv("SUPABASE_URL")))
-print("[DEBUG] SB_KEY?", bool(os.getenv("SUPABASE_SERVICE_ROLE_KEY")))
-print("[DEBUG] SB_BUCKET:", os.getenv("SB_BUCKET"))
+
 # ---------------- Firebase ----------------
 # FIREBASE_KEY_JSON: biến môi trường chứa toàn bộ JSON service account
 cred_json = os.getenv("FIREBASE_KEY_JSON")
@@ -24,25 +22,30 @@ cred_dict = json.loads(cred_json)
 firebase_admin.initialize_app(credentials.Certificate(cred_dict))
 db = firestore.client()
 
-# ---------------- Supabase Storage ----------------
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-SB_BUCKET = os.getenv("SB_BUCKET", "bioscan")
-sb = create_client(SUPABASE_URL, SUPABASE_KEY)
+# ---------------- Supabase Storage (lazy init) ----------------
+_SB = None
+SB_BUCKET = os.getenv("SB_BUCKET", "bioscan").strip()  # nhớ tạo bucket này và bật Public trên Supabase
+
+def get_sb():
+    """Khởi tạo Supabase client khi cần (tránh crash lúc import)."""
+    global _SB
+    if _SB is None:
+        url = os.getenv("SUPABASE_URL", "").strip()
+        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+        print("[DEBUG] SUPABASE_URL set?", bool(url), "| SUPABASE_KEY set?", bool(key), "| BUCKET:", SB_BUCKET, flush=True)
+        if not url or not key:
+            raise RuntimeError("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY")
+        _SB = create_client(url, key)
+    return _SB
 
 def sb_upload(local_path: str, remote_path: str) -> str:
-    """
-    Upload file lên Supabase Storage (bucket public) và trả public URL.
-    upsert=True để ghi đè khi trùng scan_id.
-    """
+    """Upload file lên Supabase Storage (bucket public) và trả public URL."""
     ctype = mimetypes.guess_type(local_path)[0] or "application/octet-stream"
     with open(local_path, "rb") as f:
-        sb.storage.from_(SB_BUCKET).upload(
-            remote_path,
-            f,
-            {"content-type": ctype, "upsert": True}
+        get_sb().storage.from_(SB_BUCKET).upload(
+            remote_path, f, {"content-type": ctype, "upsert": True}
         )
-    return sb.storage.from_(SB_BUCKET).get_public_url(remote_path)
+    return get_sb().storage.from_(SB_BUCKET).get_public_url(remote_path)
 
 # ---------------- App config ----------------
 CONFIDENCE_THRESHOLD = 0.7
@@ -60,7 +63,7 @@ def predict():
     role = request.form['role']
     scan_id = request.form['scan_id']
 
-    # Lưu tạm local để xử lý (vẫn như cũ)
+    # Lưu tạm local để xử lý (như cũ)
     os.makedirs("static/uploads", exist_ok=True)
     os.makedirs("static/outputs", exist_ok=True)
     img_path_local = f"static/uploads/{scan_id}.jpg"
@@ -80,15 +83,15 @@ def predict():
             "nên hệ thống không cung cấp thông tin chi tiết."
         )
 
-    # Ghi mô tả ra file txt (như cũ)
+    # Ghi mô tả ra file txt
     with open(txt_path_local, "w", encoding="utf-8") as f:
         f.write(description)
 
-    # Upload ảnh & txt lên Supabase Storage -> nhận public URL (bền, mở được trên web)
+    # Upload ảnh & txt lên Supabase Storage -> nhận public URL bền
     img_url = sb_upload(img_path_local, f"uploads/{scan_id}.jpg")
     txt_url = sb_upload(txt_path_local, f"outputs/{scan_id}.txt")
 
-    # Cập nhật Firestore history
+    # Cập nhật Firestore history (giữ nguyên schema)
     collection_name = "archived_guests" if role == "guest" else "users"
     history_ref = (
         db.collection(collection_name)
