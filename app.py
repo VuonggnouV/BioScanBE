@@ -14,7 +14,9 @@ from firebase_admin import credentials, firestore
 from supabase import create_client
 
 app = Flask(__name__)
-
+print("[DEBUG] SB_URL?", bool(os.getenv("SUPABASE_URL")))
+print("[DEBUG] SB_KEY?", bool(os.getenv("SUPABASE_SERVICE_ROLE_KEY")))
+print("[DEBUG] SB_BUCKET:", os.getenv("SB_BUCKET"))
 # ---------------- Firebase ----------------
 # FIREBASE_KEY_JSON: biến môi trường chứa toàn bộ JSON service account
 cred_json = os.getenv("FIREBASE_KEY_JSON")
