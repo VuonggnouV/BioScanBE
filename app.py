@@ -43,7 +43,7 @@ def sb_upload(local_path: str, remote_path: str) -> str:
     ctype = mimetypes.guess_type(local_path)[0] or "application/octet-stream"
     with open(local_path, "rb") as f:
         get_sb().storage.from_(SB_BUCKET).upload(
-            remote_path, f, {"content-type": ctype, "upsert": True}
+            remote_path, f, {"content-type": ctype, "x-upsert": True}
         )
     return get_sb().storage.from_(SB_BUCKET).get_public_url(remote_path)
 
