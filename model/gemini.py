@@ -27,8 +27,8 @@ Trình bày dưới dạng văn bản hoàn chỉnh, hướng đến người d�
     """
 
     try:
-        img = PIL.Image.open(image_path)
-        response = gemini_model.generate_content(prompt, img])
+        #img = PIL.Image.open(image_path)
+        response = gemini_model.generate_content(prompt])
         return response.text
     except Exception as e:
         print(f"Lỗi khi gọi API Gemini: {e}")
