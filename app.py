@@ -39,10 +39,17 @@ def get_sb():
     return _SB
 
 def sb_upload(local_path: str, remote_path: str, content_type: str | None = None) -> str:
+    from mimetypes import guess_type
+
+    ct = content_type or (guess_type(remote_path)[0] or "application/octet-stream")
+    file_options = {"contentType": ct, "cacheControl": "3600", "upsert": True}
+
     with open(local_path, "rb") as f:
-        opts = {"content-type": content_type} if content_type else None
-        get_sb().storage.from_(SB_BUCKET).upload(remote_path, f, opts)
+        # truyền vào tham số file_options (rõ ràng) thay vì đối số thứ 3 ẩn
+        get_sb().storage.from_(SB_BUCKET).upload(remote_path, f, file_options=file_options)
+
     return get_sb().storage.from_(SB_BUCKET).get_public_url(remote_path)
+
 
 # ---------------- App config ----------------
 CONFIDENCE_THRESHOLD = 0.7
